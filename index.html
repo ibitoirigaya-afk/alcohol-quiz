@@ -6,11 +6,11 @@
     <title>Alcohol Quiz</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #1a1a2e; color: #ffffff; min-height: 100vh; display: flex; align-items: center; }
+        body { background-color: #1a1a2e; color: #ffffff; min-height: 100vh; display: flex; align-items: center; font-family: 'Helvetica Neue', Arial, sans-serif; }
         .container { max-width: 850px; }
         .card { background: #16213e; border: 2px solid #4ecca3; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: #ffffff !important; }
         #question-name { color: #ffffff; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        .choice-btn { width: 100%; margin-bottom: 15px; font-size: 1.1rem; border: 2px solid #4ecca3; color: white; background: transparent; }
+        .choice-btn { width: 100%; margin-bottom: 15px; font-size: 1.1rem; border: 2px solid #4ecca3; color: white; background: transparent; transition: 0.2s; }
         .choice-btn:hover { background: #4ecca3; color: #1a1a2e; }
         .progress { height: 12px; margin-bottom: 25px; background: #0f3460; }
         .progress-bar { background-color: #4ecca3; }
@@ -18,7 +18,7 @@
         .wrong-bg { background-color: #dc3545 !important; border-color: #dc3545 !important; }
         .review-area { max-height: 400px; overflow-y: auto; background: #0f3460; border-radius: 10px; padding: 20px; }
         .review-item { border-bottom: 1px solid #4ecca3; padding: 12px 0; text-align: left; }
-        .mode-select { border: 2px solid #a2a8d3; padding: 15px; border-radius: 10px; cursor: pointer; transition: 0.3s; height: 100%; }
+        .mode-select { border: 2px solid #a2a8d3; padding: 15px; border-radius: 10px; cursor: pointer; transition: 0.3s; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .mode-select:hover { background: #1f4068; transform: translateY(-5px); }
         .mode-select.active { border-color: #4ecca3; background: #1f4068; box-shadow: 0 0 15px rgba(78, 204, 163, 0.4); }
         .d-none { display: none !important; }
@@ -34,32 +34,28 @@
         
         <p class="text-white-50">1. モードと難易度を選択</p>
         <div class="row g-3 mb-4">
-            <!-- カクテル初級 -->
             <div class="col-md-3 col-6">
                 <div id="mode-cocktail-1" class="mode-select active" onclick="updateMode('cocktail', 1)">
                     <span class="badge bg-success mb-1">初級</span>
                     <h6>🍸 カクテル<br><small>一般的</small></h6>
                 </div>
             </div>
-            <!-- カクテル中級 -->
             <div class="col-md-3 col-6">
                 <div id="mode-cocktail-2" class="mode-select" onclick="updateMode('cocktail', 2)">
                     <span class="badge bg-warning text-dark mb-1">中級</span>
                     <h6>🍹 カクテル<br><small>メニュー定番</small></h6>
                 </div>
             </div>
-            <!-- カクテル上級 -->
             <div class="col-md-3 col-6">
                 <div id="mode-cocktail-3" class="mode-select" onclick="updateMode('cocktail', 3)">
                     <span class="badge bg-danger mb-1">上級</span>
                     <h6>🤵 カクテル<br><small>プロ基準</small></h6>
                 </div>
             </div>
-            <!-- お酒の銘柄 -->
             <div class="col-md-3 col-6">
                 <div id="mode-brand" class="mode-select" onclick="updateMode('brand', 0)">
-                    <span class="badge bg-info text-dark mb-1">全102問</span>
-                    <h6>🍾 お酒の銘柄<br><small>詳細分類</small></h6>
+                    <span class="badge bg-info text-dark mb-1">銘柄</span>
+                    <h6>🍾 お酒の銘柄<br><small>全102問</small></h6>
                 </div>
             </div>
         </div>
@@ -89,6 +85,7 @@
 </div>
 
 <script>
+// --- データセット ---
 const cocktailData = [
     // 初級 (35問)
     { name: "ジントニック", base: "ジン", mixer: "トニックウォーター", level: 1 },
@@ -256,10 +253,13 @@ function updateMode(mode, level) {
     const btnContainer = document.getElementById("num-buttons");
     btnContainer.innerHTML = "";
 
+    // 10問刻みでボタンを作るが、最大数を超えないように制御
     [10, 20, 30, 50, 100].forEach(n => {
-        if (n <= maxNum) createNumButton(n);
+        if (n < maxNum) createNumButton(n);
     });
-    if (![10, 20, 30, 50, 100].includes(maxNum) && maxNum > 0) {
+    
+    // 最後に必ず「全件（最大数）」のボタンを追加
+    if (maxNum > 0) {
         createNumButton(maxNum);
     }
 }
@@ -350,7 +350,7 @@ function showResult() {
     });
 }
 
-// 初期実行
+// 初期起動
 updateMode('cocktail', 1);
 </script>
 </body>
