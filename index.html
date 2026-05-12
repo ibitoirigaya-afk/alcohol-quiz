@@ -253,15 +253,13 @@ function updateMode(mode, level) {
     const btnContainer = document.getElementById("num-buttons");
     btnContainer.innerHTML = "";
 
-    // 10問刻みでボタンを作るが、最大数を超えないように制御
+    // 10問刻みのボタンを生成（最大数を超えない場合のみ）
     [10, 20, 30, 50, 100].forEach(n => {
         if (n < maxNum) createNumButton(n);
     });
     
-    // 最後に必ず「全件（最大数）」のボタンを追加
-    if (maxNum > 0) {
-        createNumButton(maxNum);
-    }
+    // 最後に必ず「現在のカテゴリの最大数」のボタンを追加
+    createNumButton(maxNum);
 }
 
 function createNumButton(num) {
