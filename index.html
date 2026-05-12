@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>お酒の達人クイズ</title>
+    <title>お酒の達人クイズ Pro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #1a1a2e; color: #ffffff; min-height: 100vh; display: flex; align-items: center; }
-        .container { max-width: 750px; }
+        .container { max-width: 800px; }
         .card { background: #16213e; border: 2px solid #4ecca3; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: #ffffff !important; }
-        #question-name { color: #ffffff; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        #question-type { color: #4ecca3; font-weight: bold; }
-        .choice-btn { width: 100%; margin-bottom: 15px; font-size: 1.1rem; transition: 0.2s; border: 2px solid #4ecca3; color: white; background: transparent; }
+        #question-name { color: #ffffff; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .choice-btn { width: 100%; margin-bottom: 15px; font-size: 1.1rem; border: 2px solid #4ecca3; color: white; background: transparent; }
         .choice-btn:hover { background: #4ecca3; color: #1a1a2e; }
         .progress { height: 12px; margin-bottom: 25px; background: #0f3460; }
         .progress-bar { background-color: #4ecca3; }
@@ -20,7 +19,8 @@
         .review-area { max-height: 400px; overflow-y: auto; background: #0f3460; border-radius: 10px; padding: 20px; }
         .review-item { border-bottom: 1px solid #4ecca3; padding: 12px 0; text-align: left; }
         .mode-select { border: 2px solid #a2a8d3; padding: 15px; border-radius: 10px; margin-bottom: 20px; cursor: pointer; transition: 0.3s; }
-        .mode-select.active { border-color: #4ecca3; background: #1f4068; }
+        .mode-select:hover { background: #1f4068; }
+        .mode-select.active { border-color: #4ecca3; background: #1f4068; box-shadow: 0 0 15px rgba(78, 204, 163, 0.3); }
         .d-none { display: none !important; }
     </style>
 </head>
@@ -34,38 +34,32 @@
         <p class="text-white-50">1. クイズモードを選択</p>
         <div class="row mb-4">
             <div class="col-6">
-                <div id="mode-cocktail" class="mode-select active" onclick="setMode('cocktail')">
+                <div id="mode-cocktail" class="mode-select active" onclick="updateMode('cocktail')">
                     <h5>🍸 カクテル構成</h5>
-                    <small>ベースや割り材を当てる</small>
+                    <small id="cocktail-total-count">--問</small>
                 </div>
             </div>
             <div class="col-6">
-                <div id="mode-brand" class="mode-select" onclick="setMode('brand')">
-                    <h5>🍾 お酒の種類</h5>
-                    <small>銘柄から種類を当てる</small>
+                <div id="mode-brand" class="mode-select" onclick="updateMode('brand')">
+                    <h5>🍾 お酒の種類(細分化)</h5>
+                    <small id="brand-total-count">--問</small>
                 </div>
             </div>
         </div>
 
-        <p class="text-white-50">2. 問題数を選択</p>
-        <div class="d-grid gap-2 col-8 mx-auto">
-            <div class="btn-group">
-                <button class="btn btn-outline-info text-white" onclick="startGame(10)">10問</button>
-                <button class="btn btn-outline-info text-white" onclick="startGame(20)">20問</button>
-                <button class="btn btn-outline-info text-white" onclick="startGame(30)">30問</button>
-                <button class="btn btn-outline-info text-white" onclick="startGame(40)">40問</button>
-                <button class="btn btn-outline-info text-white" onclick="startGame(50)">50問</button>
+        <div id="num-selection-area">
+            <p class="text-white-50">2. 問題数を選択</p>
+            <div id="num-buttons" class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                <!-- ここに動的にボタンが生成されます -->
             </div>
         </div>
     </div>
 
     <!-- クイズ画面 -->
     <div id="quiz-screen" class="card d-none">
-        <div class="progress">
-            <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
-        </div>
+        <div class="progress"><div id="progress-bar" class="progress-bar" style="width: 0%"></div></div>
         <p id="question-count" class="small mb-2 text-white-50"></p>
-        <h4 id="question-type" class="mb-3">---</h4>
+        <h4 id="question-type" class="mb-3 text-info" style="font-weight: bold;">---</h4>
         <h2 id="question-name" class="display-4 mb-4">---</h2>
         <div id="choices" class="row"></div>
     </div>
@@ -135,27 +129,47 @@ const cocktailData = [
 ];
 
 const brandData = [
-    { name: "タンカレー", type: "ジン" }, { name: "ボンベイ・サファイア", type: "ジン" }, { name: "ビーフィーター", type: "ジン" },
-    { name: "スミノフ", type: "ウォッカ" }, { name: "アブソルート", type: "ウォッカ" }, { name: "グレイグース", type: "ウォッカ" },
-    { name: "バカルディ", type: "ラム" }, { name: "キャプテン・モルガン", type: "ラム" }, { name: "マイヤーズ", type: "ラム" },
-    { name: "クエルボ", type: "テキーラ" }, { name: "サウザ", type: "テキーラ" }, { name: "パトロン", type: "テキーラ" },
-    { name: "山崎", type: "ウイスキー" }, { name: "ジャックダニエル", type: "ウイスキー" }, { name: "マッカラン", type: "ウイスキー" },
-    { name: "ヘネシー", type: "ブランデー" }, { name: "レミーマルタン", type: "ブランデー" }, { name: "マーテル", type: "ブランデー" },
-    { name: "いいちこ", type: "焼酎" }, { name: "黒霧島", type: "焼酎" }, { name: "魔王", type: "焼酎" },
-    { name: "獺祭", type: "日本酒" }, { name: "久保田", type: "日本酒" }, { name: "八海山", type: "日本酒" },
-    { name: "カンパリ", type: "リキュール" }, { name: "カシス", type: "リキュール" }, { name: "カルーア", type: "リキュール" },
-    { name: "コカレロ", type: "リキュール" }, { name: "イエガーマイスター", type: "リキュール" }, { name: "チンザノ", type: "ワイン(ベルモット)" },
-    { name: "モエ・エ・シャンドン", type: "シャンパン" }, { name: "ドン・ペリニヨン", type: "シャンパン" }, { name: "ヴーヴ・クリコ", type: "シャンパン" },
-    { name: "コロナ", type: "ビール" }, { name: "ハイネケン", type: "ビール" }, { name: "ギネス", type: "ビール" },
-    { name: "ジムビーム", type: "ウイスキー" }, { name: "シーバスリーガル", type: "ウイスキー" }, { name: "ボウモア", type: "ウイスキー" },
-    { name: "ズブロッカ", type: "ウォッカ" }, { name: "ハバナクラブ", type: "ラム" }, { name: "ロンリコ", type: "ラム" },
-    { name: "オールドパー", type: "ウイスキー" }, { name: "ワイルドターキー", type: "ウイスキー" }, { name: "ラフロイグ", type: "ウイスキー" },
-    { name: "一刻者", type: "焼酎" }, { name: "赤霧島", type: "焼酎" }, { name: "中々", type: "焼酎" },
-    { name: "十四代", type: "日本酒" }, { name: "越乃寒梅", type: "日本酒" }
+    // --- 焼酎 (細分化) ---
+    { name: "黒霧島", type: "芋焼酎" }, { name: "佐藤 黒", type: "芋焼酎" }, { name: "魔王", type: "芋焼酎" }, { name: "赤霧島", type: "芋焼酎" }, { name: "三岳", type: "芋焼酎" },
+    { name: "伊佐美", type: "芋焼酎" }, { name: "富乃宝山", type: "芋焼酎" }, { name: "だいやめ", type: "芋焼酎" }, { name: "一刻者", type: "芋焼酎" }, { name: "村尾", type: "芋焼酎" },
+    { name: "いいちこ", type: "麦焼酎" }, { name: "二階堂", type: "麦焼酎" }, { name: "中々", type: "麦焼酎" }, { name: "兼八", type: "麦焼酎" }, { name: "百年の孤独", type: "麦焼酎" },
+    { name: "白岳しろ", type: "米焼酎" }, { name: "鳥飼", type: "米焼酎" }, { name: "川辺", type: "米焼酎" }, { name: "よろしく千萬あるべし", type: "米焼酎" },
+    { name: "れんと", type: "黒糖焼酎" }, { name: "朝日", type: "黒糖焼酎" }, { name: "喜界島", type: "黒糖焼酎" },
+    { name: "残波", type: "泡盛" }, { name: "瑞泉", type: "泡盛" }, { name: "菊之露", type: "泡盛" }, { name: "久米仙", type: "泡盛" },
+
+    // --- ウイスキー (細分化) ---
+    { name: "マッカラン", type: "スコッチ" }, { name: "ラフロイグ", type: "スコッチ" }, { name: "ボウモア", type: "スコッチ" }, { name: "ジョニーウォーカー", type: "スコッチ" }, 
+    { name: "タリスカー", type: "スコッチ" }, { name: "アードベッグ", type: "スコッチ" }, { name: "グレンフィディック", type: "スコッチ" }, { name: "ザ・グレンリベット", type: "スコッチ" },
+    { name: "バランタイン", type: "スコッチ" }, { name: "シーバスリーガル", type: "スコッチ" }, { name: "カリラ", type: "スコッチ" }, { name: "ラガヴーリン", type: "スコッチ" },
+    { name: "メーカーズマーク", type: "バーボン" }, { name: "ワイルドターキー", type: "バーボン" }, { name: "I.W.ハーパー", type: "バーボン" }, { name: "ブラントン", type: "バーボン" },
+    { name: "ジムビーム", type: "バーボン" }, { name: "エライジャ・クレイグ", type: "バーボン" }, { name: "フォアローゼズ", type: "バーボン" },
+    { name: "ジャックダニエル", type: "テネシーウイスキー" },
+    { name: "山崎", type: "ジャパニーズウイスキー" }, { name: "響", type: "ジャパニーズウイスキー" }, { name: "白州", type: "ジャパニーズウイスキー" }, { name: "竹鶴", type: "ジャパニーズウイスキー" },
+    { name: "余市", type: "ジャパニーズウイスキー" }, { name: "宮城峡", type: "ジャパニーズウイスキー" }, { name: "イチローズモルト", type: "ジャパニーズウイスキー" },
+    { name: "ジェムソン", type: "アイリッシュウイスキー" }, { name: "ブッシュミルズ", type: "アイリッシュウイスキー" }, { name: "タラモアデュー", type: "アイリッシュウイスキー" },
+    { name: "カナディアンクラブ", type: "カナディアンウイスキー" },
+
+    // --- スピリッツ (ジン・ウォッカ・テキーラ・ラム) ---
+    { name: "タンカレー", type: "ジン" }, { name: "ボンベイ・サファイア", type: "ジン" }, { name: "ビーフィーター", type: "ジン" }, { name: "季の美", type: "ジン" }, { name: "ゴードン", type: "ジン" }, { name: "モンキー47", type: "ジン" }, { name: "ヘンドリックス", type: "ジン" },
+    { name: "スミノフ", type: "ウォッカ" }, { name: "アブソルート", type: "ウォッカ" }, { name: "ズブロッカ", type: "ウォッカ" }, { name: "グレイグース", type: "ウォッカ" }, { name: "ベルヴェデール", type: "ウォッカ" }, { name: "シロック", type: "ウォッカ" },
+    { name: "クエルボ", type: "テキーラ" }, { name: "サウザ", type: "テキーラ" }, { name: "パトロン", type: "テキーラ" }, { name: "ドン・フリオ", type: "テキーラ" }, { name: "1800アネホ", type: "テキーラ" },
+    { name: "バカルディ", type: "ラム" }, { name: "キャプテン・モルガン", type: "ラム" }, { name: "ハバナクラブ", type: "ラム" }, { name: "マイヤーズ", type: "ラム" }, { name: "ロンサカパ", type: "ラム" }, { name: "アップルトン", type: "ラム" },
+
+    // --- ブランデー・ワイン・日本酒 ---
+    { name: "ヘネシー", type: "ブランデー" }, { name: "レミーマルタン", type: "ブランデー" }, { name: "カミュ", type: "ブランデー" }, { name: "マーテル", type: "ブランデー" },
+    { name: "獺祭", type: "日本酒" }, { name: "十四代", type: "日本酒" }, { name: "新政", type: "日本酒" }, { name: "久保田", type: "日本酒" }, { name: "八海山", type: "日本酒" }, { name: "写楽", type: "日本酒" },
+    { name: "モエ・エ・シャンドン", type: "シャンパン" }, { name: "ドン・ペリニヨン", type: "シャンパン" }, { name: "クリュッグ", type: "シャンパン" }, { name: "ヴーヴ・クリコ", type: "シャンパン" },
+    { name: "プレミアムモルツ", type: "ビール" }, { name: "エビス", type: "ビール" }, { name: "コロナ", type: "ビール" }, { name: "ギネス", type: "ビール" }, { name: "ヒューガルデン", type: "ビール" },
+
+    // --- リキュール ---
+    { name: "カンパリ", type: "リキュール" }, { name: "ルジェ・カシス", type: "リキュール" }, { name: "イエガーマイスター", type: "リキュール" }, { name: "コカレロ", type: "リキュール" },
+    { name: "ディサローノ(アマレット)", type: "リキュール" }, { name: "パッソア", type: "リキュール" }, { name: "ピーチツリー", type: "リキュール" }, { name: "カルーア", type: "リキュール" },
+    { name: "マリブ", type: "リキュール" }, { name: "ミドリ(メロン)", type: "リキュール" }, { name: "ティフィン(紅茶)", type: "リキュール" }, { name: "ドランブイ", type: "リキュール" }
 ];
 
-const categories = ["ジン", "ウォッカ", "テキーラ", "ラム", "ウイスキー", "ブランデー", "リキュール", "焼酎", "日本酒", "ビール", "シャンパン"];
-const mixers = ["トニックウォーター", "ジンジャーエール", "オレンジジュース", "グレープフルーツジュース", "コーラ", "ソーダ", "トマトジュース", "ミルク", "ウーロン茶", "パイナップルジュース", "ライムジュース", "ホワイトキュラソー", "ベルモット"];
+const allTypesPool = [...new Set(brandData.map(d => d.type))];
+const cocktailBases = ["ジン", "ウォッカ", "テキーラ", "ラム", "ウイスキー", "ブランデー", "リキュール"];
+const cocktailMixers = ["トニックウォーター", "ジンジャーエール", "ソーダ", "オレンジジュース", "コーラ", "グレープフルーツジュース", "トマトジュース", "ミルク", "ウーロン茶"];
 
 let currentMode = 'cocktail';
 let activeQuizList = [];
@@ -163,16 +177,43 @@ let currentIdx = 0;
 let score = 0;
 let logs = [];
 
-function setMode(mode) {
+// モードに応じた問題数ボタンの更新
+function updateMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.mode-select').forEach(el => el.classList.remove('active'));
     document.getElementById(`mode-${mode}`).classList.add('active');
+
+    const data = (mode === 'cocktail') ? cocktailData : brandData;
+    const maxNum = data.length;
+    
+    const btnContainer = document.getElementById("num-buttons");
+    btnContainer.innerHTML = "";
+
+    // 10問刻みでボタンを作成
+    for (let i = 10; i <= maxNum; i += 10) {
+        createNumButton(i);
+    }
+    // 端数がある場合、または最大数ボタンを追加
+    if (maxNum % 10 !== 0) {
+        createNumButton(maxNum);
+    } else if (maxNum > 0 && !Array.from(btnContainer.children).some(b => b.textContent === maxNum + "問")) {
+        createNumButton(maxNum);
+    }
+}
+
+function createNumButton(num) {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-outline-info text-white px-4 py-2";
+    btn.textContent = num + "問";
+    btn.onclick = () => startGame(num);
+    document.getElementById("num-buttons").appendChild(btn);
 }
 
 function startGame(num) {
     const data = (currentMode === 'cocktail') ? cocktailData : brandData;
     activeQuizList = [...data].sort(() => Math.random() - 0.5).slice(0, num);
     currentIdx = 0; score = 0; logs = [];
+
     document.getElementById("home-screen").classList.add("d-none");
     document.getElementById("quiz-screen").classList.remove("d-none");
     loadQuestion();
@@ -187,12 +228,12 @@ function loadQuestion() {
         qType = isBase ? "【ベース】を当てろ！" : "【割り材】を当てろ！";
         qName = item.name;
         correct = isBase ? item.base : item.mixer;
-        pool = isBase ? categories : mixers;
+        pool = isBase ? cocktailBases : cocktailMixers;
     } else {
-        qType = "この銘柄の【種類】は何？";
+        qType = "この銘柄の【詳細な分類】は何？";
         qName = item.name;
         correct = item.type;
-        pool = categories;
+        pool = allTypesPool;
     }
 
     document.getElementById("question-type").textContent = qType;
@@ -247,6 +288,11 @@ function showResult() {
         area.appendChild(div);
     });
 }
+
+// 初期表示
+document.getElementById("cocktail-total-count").textContent = cocktailData.length + "問";
+document.getElementById("brand-total-count").textContent = brandData.length + "問";
+updateMode('cocktail');
 </script>
 </body>
 </html>
